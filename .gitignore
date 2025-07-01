@@ -1,0 +1,10 @@
+# Folder dependensi Node.js
+/temp-email-backend/node_modules
+
+# File kredensial yang sangat rahasia
+/temp-email-backend/credentials.json
+/temp-email-backend/token.json
+
+# File log atau environment lokal
+.env
+*.log
