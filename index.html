@@ -34,12 +34,11 @@
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
         }
-        /* Style untuk konten email HTML */
         .email-body-content {
-            all: unset; /* Reset semua style bawaan */
+            all: unset;
         }
         .email-body-content * {
-            all: revert; /* Kembalikan style elemen anak ke default browser */
+            all: revert;
         }
     </style>
 </head>
@@ -137,7 +136,10 @@
             const toast = document.getElementById('toast');
             const fullEmailDisplay = document.getElementById('fullEmailDisplay');
 
-            const API_URL = 'http://localhost:3001'; 
+            // =================================================================
+            // PERUBAHAN PENTING: Menggunakan URL backend yang sudah online
+            const API_URL = 'https://justa-premail-backend.onrender.com'; 
+            // =================================================================
 
             function showToast(message, isError = false) {
                 toast.textContent = message;
@@ -172,7 +174,6 @@
                     const emailEl = document.createElement('div');
                     emailEl.className = 'email-item bg-white border border-gray-200 p-4 rounded-lg cursor-pointer transition-all duration-200';
                     
-                    // Menggunakan .innerHTML agar tag HTML dari email bisa dirender
                     const emailBodyContent = `<div class="email-body-content">${email.body}</div>`;
 
                     emailEl.innerHTML = `
