@@ -14,158 +14,151 @@ app.use(cors());
 app.use(express.json());
 
 // =================================================================
-// PERUBAHAN KEAMANAN: Membaca konfigurasi dari Environment Variables
+// PERUBAHAN KEAMANAN: Mendeteksi lingkungan (Render vs Lokal)
 // =================================================================
-let firebaseConfig, credentials, token;
+const isProduction = process.env.NODE_ENV === 'production';
+// Di Render, Secret Files disimpan di /etc/secrets/
+const secretsPath = isProduction ? '/etc/secrets' : __dirname;
 
-try {
-    // Untuk produksi (di Render), baca dari environment variables
-    if (process.env.FIREBASE_CONFIG_JSON) {
-        firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG_JSON);
-        credentials = JSON.parse(process.env.CREDENTIALS_JSON);
-        token = JSON.parse(process.env.TOKEN_JSON);
-        console.log('Konfigurasi dimuat dari Environment Variables.');
-    } else {
-        // Untuk pengembangan lokal, baca dari file (tapi jangan di-upload ke GitHub)
-        // Ini tidak akan berjalan jika file tidak ada, yang mana aman.
-        console.log('Konfigurasi dibaca dari file lokal.');
-    }
-} catch (error) {
-    console.error("Gagal mem-parsing konfigurasi dari environment variables:", error);
-}
+const FIREBASE_CONFIG_PATH = path.join(secretsPath, 'firebaseConfig.json');
+const CREDENTIALS_PATH = path.join(secretsPath, 'credentials.json');
+const TOKEN_PATH = path.join(secretsPath, 'token.json');
 // =================================================================
 
-// --- Inisialisasi Firebase ---
-// Gunakan firebaseConfig yang sudah dimuat
-const firebaseApp = initializeApp(firebaseConfig || {}); // Beri objek kosong jika gagal
-const db = getFirestore(firebaseApp);
-const saltRounds = 10;
-
-// --- Konfigurasi Gmail API ---
+let firebaseConfig;
 let gmailAuthClient;
 
-async function loadGmailClient() {
+// --- Fungsi Inisialisasi ---
+async function initializeAppConfig() {
     try {
-        const { client_secret, client_id } = (credentials.installed || credentials.web);
+        console.log(`Memuat konfigurasi dari path: ${secretsPath}`);
+        
+        // Memuat konfigurasi Firebase
+        const firebaseConfigContent = await fs.readFile(FIREBASE_CONFIG_PATH);
+        firebaseConfig = JSON.parse(firebaseConfigContent);
+        const firebaseApp = initializeApp(firebaseConfig);
+        const db = getFirestore(firebaseApp);
+
+        // Memuat klien Gmail
+        const credentialsContent = await fs.readFile(CREDENTIALS_PATH);
+        const credentials = JSON.parse(credentialsContent);
+        const tokenContent = await fs.readFile(TOKEN_PATH);
+        const token = JSON.parse(tokenContent);
+
+        const { client_secret, client_id } = credentials.installed || credentials.web;
         const client = new google.auth.OAuth2(client_id, client_secret);
         client.setCredentials(token);
         gmailAuthClient = client;
-        console.log('Klien Gmail berhasil dimuat dan siap digunakan.');
+
+        console.log('Klien Firebase dan Gmail berhasil dimuat dan siap digunakan.');
+        return { db }; // Kembalikan db untuk digunakan di routes
     } catch (error) {
-        // Jika gagal, coba baca dari file sebagai fallback untuk lokal
-        try {
-            console.log("Mencoba memuat klien Gmail dari file lokal...");
-            const credentialsContent = await fs.readFile(path.join(__dirname, 'credentials.json'));
-            credentials = JSON.parse(credentialsContent);
-            const tokenContent = await fs.readFile(path.join(__dirname, 'token.json'));
-            token = JSON.parse(tokenContent);
-            
-            const { client_secret, client_id } = credentials.installed || credentials.web;
-            const client = new google.auth.OAuth2(client_id, client_secret);
-            client.setCredentials(token);
-            gmailAuthClient = client;
-            console.log('Klien Gmail berhasil dimuat dari file lokal.');
-        } catch (fileError) {
-            console.error('Gagal memuat klien Gmail dari Environment Variables maupun file:', fileError);
-        }
+        console.error('KRITIS: Gagal memuat file konfigurasi atau menginisialisasi layanan.', error);
+        // Hentikan aplikasi jika konfigurasi penting gagal dimuat
+        process.exit(1); 
     }
 }
 
-// --- API Endpoints ---
-// (Tidak ada perubahan pada logika endpoint, hanya pada cara konfigurasi dimuat)
-app.post('/api/protect', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: 'Email dan kata sandi tidak boleh kosong.' });
-    const userRef = doc(db, 'users', email);
-    const userSnap = await getDoc(userRef);
-    if (userSnap.exists()) return res.status(409).json({ message: 'Email ini sudah dilindungi.' });
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    await setDoc(userRef, { email, password: hashedPassword, createdAt: new Date() });
-    res.status(201).json({ message: 'Email berhasil dilindungi!' });
-  } catch (error) {
-    console.error('Error di /api/protect:', error);
-    res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
-  }
-});
 
-app.post('/api/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: 'Email dan kata sandi tidak boleh kosong.' });
-    const userRef = doc(db, 'users', email);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return res.status(404).json({ message: 'Email ini belum dilindungi.' });
-    const userData = userSnap.data();
-    const isMatch = await bcrypt.compare(password, userData.password);
-    if (!isMatch) return res.status(401).json({ message: 'Kata sandi salah.' });
+// --- Menjalankan Server dan API ---
+initializeAppConfig().then(({ db }) => {
+    const saltRounds = 10;
 
-    if (!gmailAuthClient) {
-        return res.status(503).json({ message: 'Layanan Gmail sedang tidak siap, coba lagi.' });
-    }
-    const gmail = google.gmail({ version: 'v1', auth: gmailAuthClient });
-    const listResponse = await gmail.users.messages.list({
-        userId: 'me',
-        q: `to:${email}`,
-        maxResults: 50, 
+    // --- API Endpoints ---
+    app.post('/api/protect', async (req, res) => {
+      try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ message: 'Email dan kata sandi tidak boleh kosong.' });
+        const userRef = doc(db, 'users', email);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) return res.status(409).json({ message: 'Email ini sudah dilindungi.' });
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        await setDoc(userRef, { email, password: hashedPassword, createdAt: new Date() });
+        res.status(201).json({ message: 'Email berhasil dilindungi!' });
+      } catch (error) {
+        console.error('Error di /api/protect:', error);
+        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
+      }
     });
 
-    if (!listResponse.data.messages || listResponse.data.messages.length === 0) {
-        return res.json({ message: 'Login berhasil, kotak masuk kosong.', emails: [] });
-    }
+    app.post('/api/login', async (req, res) => {
+      try {
+        const { email, password } = req.body;
+        if (!email || !password) return res.status(400).json({ message: 'Email dan kata sandi tidak boleh kosong.' });
+        const userRef = doc(db, 'users', email);
+        const userSnap = await getDoc(userRef);
+        if (!userSnap.exists()) return res.status(404).json({ message: 'Email ini belum dilindungi.' });
+        const userData = userSnap.data();
+        const isMatch = await bcrypt.compare(password, userData.password);
+        if (!isMatch) return res.status(401).json({ message: 'Kata sandi salah.' });
 
-    const emails = await Promise.all(
-        listResponse.data.messages.map(async (message) => {
-            const msg = await gmail.users.messages.get({ userId: 'me', id: message.id });
-            const payload = msg.data.payload;
-            const headers = payload.headers;
-            const from = headers.find(h => h.name.toLowerCase() === 'from')?.value || 'Tidak diketahui';
-            const subject = headers.find(h => h.name.toLowerCase() === 'subject')?.value || 'Tanpa Subjek';
-            let body = '';
-            
-            function getEmailBody(payload) {
-                let htmlPart = findPart(payload, 'text/html');
-                if (htmlPart) return Buffer.from(htmlPart.body.data, 'base64').toString('utf8');
-                let textPart = findPart(payload, 'text/plain');
-                if (textPart) return Buffer.from(textPart.body.data, 'base64').toString('utf8').replace(/\n/g, '<br>');
-                if (payload.body && payload.body.data) return Buffer.from(payload.body.data, 'base64').toString('utf8');
-                return '<i>(Tidak ada konten yang bisa ditampilkan)</i>';
-            }
+        if (!gmailAuthClient) {
+            return res.status(503).json({ message: 'Layanan Gmail sedang tidak siap, coba lagi.' });
+        }
+        const gmail = google.gmail({ version: 'v1', auth: gmailAuthClient });
+        const listResponse = await gmail.users.messages.list({
+            userId: 'me',
+            q: `to:${email}`,
+            maxResults: 50, 
+        });
 
-            function findPart(payload, mimeType) {
-                let foundPart = null;
-                if (payload.parts) {
-                    for (const part of payload.parts) {
-                        if (part.mimeType === mimeType) {
-                            foundPart = part;
-                            break;
-                        }
-                        if (part.parts) {
-                            foundPart = findPart(part, mimeType);
-                            if (foundPart) break;
+        if (!listResponse.data.messages || listResponse.data.messages.length === 0) {
+            return res.json({ message: 'Login berhasil, kotak masuk kosong.', emails: [] });
+        }
+
+        const emails = await Promise.all(
+            listResponse.data.messages.map(async (message) => {
+                const msg = await gmail.users.messages.get({ userId: 'me', id: message.id });
+                const payload = msg.data.payload;
+                const headers = payload.headers;
+                const from = headers.find(h => h.name.toLowerCase() === 'from')?.value || 'Tidak diketahui';
+                const subject = headers.find(h => h.name.toLowerCase() === 'subject')?.value || 'Tanpa Subjek';
+                let body = '';
+                
+                function getEmailBody(payload) {
+                    let htmlPart = findPart(payload, 'text/html');
+                    if (htmlPart) return Buffer.from(htmlPart.body.data, 'base64').toString('utf8');
+                    let textPart = findPart(payload, 'text/plain');
+                    if (textPart) return Buffer.from(textPart.body.data, 'base64').toString('utf8').replace(/\n/g, '<br>');
+                    if (payload.body && payload.body.data) return Buffer.from(payload.body.data, 'base64').toString('utf8');
+                    return '<i>(Tidak ada konten yang bisa ditampilkan)</i>';
+                }
+
+                function findPart(payload, mimeType) {
+                    let foundPart = null;
+                    if (payload.parts) {
+                        for (const part of payload.parts) {
+                            if (part.mimeType === mimeType) {
+                                foundPart = part;
+                                break;
+                            }
+                            if (part.parts) {
+                                foundPart = findPart(part, mimeType);
+                                if (foundPart) break;
+                            }
                         }
                     }
+                    return foundPart;
                 }
-                return foundPart;
-            }
 
-            body = getEmailBody(payload);
-            return { from, subject, body, time: new Date(parseInt(msg.data.internalDate)).toLocaleString('id-ID') };
-        })
-    );
-    
-    res.json({ message: 'Email berhasil diambil.', emails: emails });
+                body = getEmailBody(payload);
+                return { from, subject, body, time: new Date(parseInt(msg.data.internalDate)).toLocaleString('id-ID') };
+            })
+        );
+        
+        res.json({ message: 'Email berhasil diambil.', emails: emails });
 
-  } catch (error) {
-    console.error('Error di /api/login:', error);
-    res.status(500).json({ message: 'Gagal mengambil email dari Gmail.' });
-  }
-});
+      } catch (error) {
+        console.error('Error di /api/login:', error);
+        res.status(500).json({ message: 'Gagal mengambil email dari Gmail.' });
+      }
+    });
 
+    const PORT = process.env.PORT || 3001;
+    app.listen(PORT, () => {
+      console.log(`Server backend berjalan di port ${PORT}`);
+    });
 
-// --- Menjalankan Server ---
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Server backend berjalan di port ${PORT}`);
-  loadGmailClient();
+}).catch(error => {
+    console.error("Aplikasi gagal dijalankan karena gagal inisialisasi.", error);
 });
