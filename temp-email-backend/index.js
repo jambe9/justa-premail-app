@@ -14,11 +14,15 @@ app.use(cors());
 app.use(express.json());
 
 // =================================================================
-// PERUBAHAN KEAMANAN: Mendeteksi lingkungan (Render vs Lokal)
+// PERUBAHAN KEAMANAN: Mendeteksi lingkungan (Fly.io vs Lokal)
 // =================================================================
 const isProduction = process.env.NODE_ENV === 'production';
-// Di Render, Secret Files disimpan di /etc/secrets/
-const secretsPath = isProduction ? '/etc/secrets' : __dirname;
+// Di Fly.io, Secret Files disimpan di /run/secrets/
+// Namun, kode kita akan membaca dari path yang ditentukan di fly.toml atau Dockerfile,
+// jadi kita akan menggunakan path relatif dari __dirname untuk lokal
+// dan membiarkan Dockerfile/fly.toml menangani path di produksi.
+// Untuk Fly.io, kita akan membaca langsung dari file yang ada.
+const secretsPath = __dirname; // Untuk lokal, file ada di direktori yang sama.
 
 const FIREBASE_CONFIG_PATH = path.join(secretsPath, 'firebaseConfig.json');
 const CREDENTIALS_PATH = path.join(secretsPath, 'credentials.json');
