@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justa Premium Email - Email Pribadi</title>
-    <!-- PERUBAHAN: Menambahkan Favicon -->
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -109,7 +108,17 @@
                 </div>
 
                 <!-- Inbox Section -->
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Kotak Masuk</h3>
+                <!-- PERUBAHAN: Menambahkan container untuk judul dan tombol refresh -->
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">Kotak Masuk</h3>
+                    <div id="refresh-container" class="hidden items-center">
+                        <span id="last-refreshed" class="text-sm text-gray-500 mr-3"></span>
+                        <button id="refreshBtn" class="flex items-center space-x-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>Refresh</span>
+                        </button>
+                    </div>
+                </div>
                 <div id="inbox-container" class="space-y-3">
                     <div id="initial-message" class="text-center py-8 text-gray-500">
                         <i class="fa-solid fa-shield-halved text-3xl mb-2"></i>
@@ -131,6 +140,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- Element References ---
             const emailUser = document.getElementById('emailUser');
             const emailDomain = document.getElementById('emailDomain');
             const emailPassword = document.getElementById('emailPassword');
@@ -142,9 +152,17 @@
             const loader = document.getElementById('loader');
             const toast = document.getElementById('toast');
             const fullEmailDisplay = document.getElementById('fullEmailDisplay');
+            // PERUBAHAN: Menambahkan referensi untuk elemen refresh
+            const refreshContainer = document.getElementById('refresh-container');
+            const lastRefreshed = document.getElementById('last-refreshed');
+            const refreshBtn = document.getElementById('refreshBtn');
 
             const API_URL = 'https://justa-premail-backend.onrender.com'; 
+            
+            // PERUBAHAN: Variabel untuk menyimpan info login
+            let loggedInUser = null;
 
+            // --- Helper Functions ---
             function showToast(message, isError = false) {
                 toast.textContent = message;
                 toast.className = `fixed bottom-5 right-5 px-5 py-3 rounded-lg shadow-xl transition-all duration-300 ${isError ? 'bg-red-600' : 'bg-gray-800'} text-white`;
@@ -178,9 +196,7 @@
                 emails.forEach(email => {
                     const emailEl = document.createElement('div');
                     emailEl.className = 'email-item bg-white border border-gray-200 p-4 rounded-lg cursor-pointer transition-all duration-200';
-                    
                     const emailBodyContent = `<div class="email-body-content">${email.body}</div>`;
-
                     emailEl.innerHTML = `
                         <div class="flex justify-between items-start">
                             <div>
@@ -194,6 +210,8 @@
                     emailEl.addEventListener('click', () => emailEl.querySelector('.email-body').classList.toggle('hidden'));
                 });
             }
+
+            // --- Core Logic ---
 
             async function handleProtectEmail() {
                 const email = getFullEmail();
@@ -215,19 +233,17 @@
                     showToast(error.message, true);
                 }
             }
-
-            async function handleCheckInbox() {
-                const email = getFullEmail();
-                const password = emailPassword.value;
-                if (!email || !password) {
-                    showToast('Nama email dan kata sandi tidak boleh kosong.', true);
-                    return;
-                }
+            
+            // PERUBAHAN: Fungsi terpusat untuk mengambil email
+            async function fetchAndRenderEmails(email, password) {
                 initialMessage.classList.add('hidden');
                 inboxContainer.innerHTML = '';
                 inboxContainer.appendChild(loader);
                 loader.classList.remove('hidden');
-                
+
+                const refreshIcon = refreshBtn.querySelector('i');
+                refreshIcon.classList.add('fa-spin');
+
                 try {
                     const response = await fetch(`${API_URL}/api/login`, {
                         method: 'POST',
@@ -238,16 +254,43 @@
                     if (!response.ok) throw new Error(data.message || 'Gagal login.');
                     
                     renderEmails(data.emails);
+                    lastRefreshed.textContent = `Diperbarui: ${new Date().toLocaleTimeString('id-ID')}`;
+                    refreshContainer.classList.remove('hidden');
+                    loggedInUser = { email, password };
 
                 } catch (error) {
                     loader.classList.add('hidden');
                     showToast(error.message, true);
+                    refreshContainer.classList.add('hidden');
+                    loggedInUser = null;
+                } finally {
+                    refreshIcon.classList.remove('fa-spin');
                 }
+            }
+
+            async function handleCheckInbox() {
+                const email = getFullEmail();
+                const password = emailPassword.value;
+                if (!email || !password) {
+                    showToast('Nama email dan kata sandi tidak boleh kosong.', true);
+                    return;
+                }
+                await fetchAndRenderEmails(email, password);
+            }
+            
+            // PERUBAHAN: Fungsi baru untuk tombol refresh
+            async function handleRefresh() {
+                if (!loggedInUser) {
+                    showToast('Silakan periksa kotak masuk terlebih dahulu.', true);
+                    return;
+                }
+                await fetchAndRenderEmails(loggedInUser.email, loggedInUser.password);
             }
 
             // --- Event Listeners ---
             protectBtn.addEventListener('click', handleProtectEmail);
             checkBtn.addEventListener('click', handleCheckInbox);
+            refreshBtn.addEventListener('click', handleRefresh); // <-- Listener baru
             emailUser.addEventListener('input', updateFullEmailDisplay);
             emailDomain.addEventListener('change', updateFullEmailDisplay);
 
