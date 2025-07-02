@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Justa Premium Email - Email Pribadi</title>
+    <!-- PERUBAHAN: Menambahkan Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -86,7 +88,6 @@
 
                     <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
                         <input type="text" id="emailUser" class="form-input" placeholder="nama_email_anda">
-                        <!-- PERUBAHAN: Mengubah opsi dropdown -->
                         <select id="emailDomain" class="form-select sm:w-auto">
                             <option value="@capcutpro.cloud">@capcutpro.cloud</option>
                             <option value="" disabled>Domain baru (segera hadir)</option>
@@ -156,7 +157,6 @@
             function getFullEmail() {
                 const user = emailUser.value.trim();
                 const domain = emailDomain.value;
-                // Pastikan domain yang dipilih valid (bukan yang disabled)
                 if (!domain) return null;
                 return user ? `${user}${domain}` : null;
             }
