@@ -99,7 +99,9 @@
         </main>
     </div>
 
-    <div id="toast" class="fixed bottom-5 right-5 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-xl opacity-0 translate-y-3 transition-all duration-300"></div>
+    <div id="toast" class="fixed bottom-5 right-5 text-white px-5 py-3 rounded-lg shadow-xl opacity-0 translate-y-3 transition-all duration-300">
+        Pesan notifikasi.
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -127,8 +129,14 @@
             // === Fungsi Helper ===
             function showToast(message, isError = false) {
                 toast.textContent = message;
-                toast.className = `fixed bottom-5 right-5 px-5 py-3 rounded-lg shadow-xl transition-all duration-300 ${isError ? 'bg-red-600' : 'bg-gray-800'} text-white opacity-100`;
-                setTimeout(() => { toast.classList.remove('opacity-100'); }, 3000);
+                toast.classList.remove('bg-red-600', 'bg-gray-800');
+                toast.classList.add(isError ? 'bg-red-600' : 'bg-gray-800');
+                toast.classList.remove('opacity-0', 'translate-y-3');
+                toast.classList.add('opacity-100', 'translate-y-0');
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100', 'translate-y-0');
+                    toast.classList.add('opacity-0', 'translate-y-3');
+                }, 3000);
             }
 
             function getFullEmail() {
@@ -174,13 +182,10 @@
                     
                     inboxContainer.appendChild(emailEl);
 
-                    // --- PERBAIKAN LOGIKA KLIK ---
-                    // Tambahkan listener ke header email untuk membuka/menutup
                     emailEl.querySelector('.email-header').addEventListener('click', () => {
                         emailEl.querySelector('.email-body').classList.toggle('hidden');
                     });
 
-                    // Tambahkan listener ke tombol hapus
                     emailEl.querySelector('.delete-btn').addEventListener('click', (e) => {
                         e.stopPropagation();
                         if (confirm('Apakah Anda yakin ingin menghapus email ini?')) {
@@ -192,11 +197,9 @@
 
             // === Fungsi Logika Inti (API Calls) ===
             async function handleDeleteEmail(messageId, elementToRemove) {
-                if (!loggedInUser) {
-                    showToast('Harap login untuk menghapus email.', true);
-                    return;
-                }
+                if (!loggedInUser) return showToast('Harap login untuk menghapus email.', true);
                 try {
+                    elementToRemove.style.opacity = '0.5';
                     const response = await fetch(`${API_URL}/api/delete`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -213,38 +216,41 @@
                     elementToRemove.remove();
                 } catch (error) {
                     showToast(error.message, true);
+                    elementToRemove.style.opacity = '1';
                 }
             }
             
             async function handleProtectEmail() {
-                // ... (Fungsi ini tetap sama)
                 const email = getFullEmail();
                 const password = emailPassword.value;
                 if (!email || !password) return showToast('Nama email dan kata sandi tidak boleh kosong.', true);
+                protectBtn.disabled = true;
                 try {
                     const response = await fetch(`${API_URL}/api/protect`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.message || 'Gagal melindungi email.');
                     showToast(data.message);
-                } catch (error) { showToast(error.message, true); }
+                } catch (error) { 
+                    showToast(error.message, true); 
+                } finally {
+                    protectBtn.disabled = false;
+                }
             }
             
             async function fetchAndRenderEmails(email, password) {
-                // ... (Fungsi ini tetap sama, tetapi kita tambahkan return email.id)
                 initialMessage.classList.add('hidden');
                 inboxContainer.innerHTML = '';
                 inboxContainer.appendChild(loader);
                 loader.classList.remove('hidden');
                 const refreshIcon = refreshBtn.querySelector('i');
                 refreshIcon.classList.add('fa-spin');
+                checkBtn.disabled = true;
+                refreshBtn.disabled = true;
                 try {
                     const response = await fetch(`${API_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.message || 'Gagal login.');
                     
-                    // --- PERBAIKAN LOGIKA PENGAMBILAN DATA ---
-                    // Kita perlu memastikan backend mengembalikan `id`
-                    // Asumsikan backend sudah diperbarui untuk menyertakan `id`
                     renderEmails(data.emails);
                     
                     lastRefreshed.textContent = `Diperbarui: ${new Date().toLocaleTimeString('id-ID')}`;
@@ -257,6 +263,8 @@
                     loggedInUser = null;
                 } finally {
                     refreshIcon.classList.remove('fa-spin');
+                    checkBtn.disabled = false;
+                    refreshBtn.disabled = false;
                 }
             }
 
@@ -293,6 +301,8 @@
                 togglePassword.querySelector('i').classList.toggle('fa-eye', !isPassword);
                 togglePassword.querySelector('i').classList.toggle('fa-eye-slash', isPassword);
             });
+            
+            updateFullEmailDisplay();
         });
     </script>
 </body>
