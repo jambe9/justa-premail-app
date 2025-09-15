@@ -9,38 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        .gradient-bg {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-        }
-        .main-content {
-            background-color: #f8f9fa;
-        }
-        .email-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-        .form-input, .form-select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            background-color: #ffffff;
-            transition: all 0.2s ease-in-out;
-        }
-        .form-input:focus, .form-select:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
-        }
-        .email-body-content {
-            all: unset;
-        }
-        .email-body-content * {
-            all: revert;
-        }
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); }
+        .email-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        .form-input, .form-select { width: 100%; padding: 0.75rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; background-color: #ffffff; transition: all 0.2s ease-in-out; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4); }
+        .email-body-content { all: unset; }
+        .email-body-content * { all: revert; }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -48,9 +23,7 @@
     <div class="container mx-auto p-4 md:p-8 max-w-6xl">
         <header class="flex justify-between items-center mb-6">
             <div class="flex items-center space-x-3">
-                <div class="gradient-bg p-2 rounded-lg">
-                    <i class="fa-regular fa-envelope text-white text-2xl"></i>
-                </div>
+                <div class="gradient-bg p-2 rounded-lg"><i class="fa-regular fa-envelope text-white text-2xl"></i></div>
                 <h1 class="text-2xl font-bold text-gray-800">Justa Premium Email</h1>
             </div>
         </header>
@@ -59,7 +32,6 @@
             <aside class="w-full md:w-1/3 gradient-bg text-white p-8">
                 <h2 class="text-2xl font-bold mb-2">Email Pribadi Akun Premium Anda.</h2>
                 <p class="text-blue-100 mb-8">Segera Lindungi akun email Anda dengan kata sandi, lalu periksa kotak masuk dengan aman.</p>
-                
                 <div class="border-t border-blue-400 pt-6">
                     <h3 class="text-lg font-semibold mb-3">Cara Penggunaan:</h3>
                     <ol class="list-decimal list-inside space-y-2 text-blue-100">
@@ -79,22 +51,20 @@
                             <span>Copy</span>
                         </button>
                     </div>
-
                     <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-2">
                         <input type="text" id="emailUser" class="form-input" placeholder="nama_email_anda">
                         <select id="emailDomain" class="form-select sm:w-auto">
                             <option value="@capcutpro.cloud">@capcutpro.cloud</option>
-                            <option value="" disabled>Domain baru (segera hadir)</option>
                         </select>
                     </div>
                     <div class="relative">
-                            <input type="password" id="emailPassword" class="form-input pr-10" placeholder="Masukkan kata sandi...">
-                                <button id="togglePassword" type="button" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                        <input type="password" id="emailPassword" class="form-input pr-10" placeholder="Masukkan kata sandi...">
+                        <button id="togglePassword" type="button" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600">
+                            <i class="fas fa-eye"></i>
+                        </button>
                     </div>
                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                         <button id="protectBtn" class="w-full flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-3 rounded-lg transition-colors">
+                        <button id="protectBtn" class="w-full flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-3 rounded-lg transition-colors">
                             <i class="fa-solid fa-shield-halved"></i>
                             <span>Lindungi Email</span>
                         </button>
@@ -118,7 +88,7 @@
                 <div id="inbox-container" class="space-y-3">
                     <div id="initial-message" class="text-center py-8 text-gray-500">
                         <i class="fa-solid fa-shield-halved text-3xl mb-2"></i>
-                        <p>Daftarkan email dan kata sandi dengan tombol "Lindungi Email", atau periksa kotak masuk jika sudah terdaftar.</p>
+                        <p>Daftarkan email dan kata sandi, atau periksa kotak masuk jika sudah terdaftar.</p>
                     </div>
                     <div id="loader" class="text-center py-8 hidden">
                         <i class="fas fa-spinner fa-spin text-3xl text-blue-500"></i>
@@ -129,13 +99,11 @@
         </main>
     </div>
 
-    <div id="toast" class="fixed bottom-5 right-5 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-xl opacity-0 translate-y-3 transition-all duration-300">
-        Pesan notifikasi.
-    </div>
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-800 text-white px-5 py-3 rounded-lg shadow-xl opacity-0 translate-y-3 transition-all duration-300"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- Element References ---
+            // === Referensi Elemen ===
             const emailUser = document.getElementById('emailUser');
             const emailDomain = document.getElementById('emailDomain');
             const emailPassword = document.getElementById('emailPassword');
@@ -152,33 +120,28 @@
             const lastRefreshed = document.getElementById('last-refreshed');
             const refreshBtn = document.getElementById('refreshBtn');
 
-            // === PERUBAHAN DI SINI ===
+            // === Konfigurasi & State ===
             const API_URL = 'https://justa-premail-api.wayanbisnis65.workers.dev';
-            
             let loggedInUser = null;
 
-            // --- Helper Functions ---
+            // === Fungsi Helper ===
             function showToast(message, isError = false) {
                 toast.textContent = message;
-                toast.className = `fixed bottom-5 right-5 px-5 py-3 rounded-lg shadow-xl transition-all duration-300 ${isError ? 'bg-red-600' : 'bg-gray-800'} text-white`;
-                toast.classList.remove('opacity-0', 'translate-y-3');
-                setTimeout(() => {
-                    toast.classList.add('opacity-0', 'translate-y-3');
-                }, 3000);
+                toast.className = `fixed bottom-5 right-5 px-5 py-3 rounded-lg shadow-xl transition-all duration-300 ${isError ? 'bg-red-600' : 'bg-gray-800'} text-white opacity-100`;
+                setTimeout(() => { toast.classList.remove('opacity-100'); }, 3000);
             }
 
             function getFullEmail() {
                 const user = emailUser.value.trim();
                 const domain = emailDomain.value;
-                if (!domain) return null;
-                return user ? `${user}${domain}` : null;
+                return user && domain ? `${user}${domain}` : null;
             }
             
             function updateFullEmailDisplay() {
-                const fullEmail = getFullEmail();
-                fullEmailDisplay.textContent = fullEmail || 'email anda';
+                fullEmailDisplay.textContent = getFullEmail() || 'email anda';
             }
 
+            // === Fungsi Render ===
             function renderEmails(emails) {
                 loader.classList.add('hidden');
                 inboxContainer.innerHTML = ''; 
@@ -190,11 +153,13 @@
 
                 emails.forEach(email => {
                     const emailEl = document.createElement('div');
-                    emailEl.className = 'email-item bg-white border border-gray-200 p-4 rounded-lg cursor-pointer transition-all duration-200';
+                    emailEl.setAttribute('data-message-id', email.id);
+                    emailEl.className = 'email-item bg-white border border-gray-200 p-4 rounded-lg transition-all duration-200';
+                    
                     const emailBodyContent = `<div class="email-body-content">${email.body}</div>`;
                     emailEl.innerHTML = `
                         <div class="flex justify-between items-start">
-                             <div class="flex-grow cursor-pointer" onclick="this.parentElement.nextElementSibling.classList.toggle('hidden')">
+                            <div class="flex-grow cursor-pointer email-header">
                                 <p class="font-semibold text-gray-800">${email.from.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
                                 <p class="font-medium text-gray-600">${email.subject}</p>
                             </div>
@@ -206,69 +171,85 @@
                             </div>
                         </div>
                         <div class="email-body hidden mt-4 pt-4 border-t border-gray-200 text-gray-700">${emailBodyContent}</div>`;
+                    
                     inboxContainer.appendChild(emailEl);
-                    // Menambahkan fungsi klik ke tombol hapus
-                    const deleteButton = emailEl.querySelector('.delete-btn');
-                        deleteButton.addEventListener('click', (e) => {
-                            e.stopPropagation(); // Mencegah email terbuka saat tombol hapus diklik
 
-                            if (confirm('Apakah Anda yakin ingin menghapus email ini?')) {
-                                // NOTE: Logika untuk memanggil API backend akan kita tambahkan nanti.
-                                // Untuk sekarang, kita hanya akan menampilkan pesan dan menghapus email dari tampilan.
-                                showToast('Fungsi hapus akan dihubungkan ke backend.');
-                                emailEl.remove(); // Hapus item email dari tampilan
-                            }
-                        });
-                    emailEl.addEventListener('click', () => emailEl.querySelector('.email-body').classList.toggle('hidden'));
+                    // --- PERBAIKAN LOGIKA KLIK ---
+                    // Tambahkan listener ke header email untuk membuka/menutup
+                    emailEl.querySelector('.email-header').addEventListener('click', () => {
+                        emailEl.querySelector('.email-body').classList.toggle('hidden');
+                    });
+
+                    // Tambahkan listener ke tombol hapus
+                    emailEl.querySelector('.delete-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (confirm('Apakah Anda yakin ingin menghapus email ini?')) {
+                            handleDeleteEmail(email.id, emailEl);
+                        }
+                    });
                 });
             }
 
-            // --- Core Logic ---
-
-            async function handleProtectEmail() {
-                const email = getFullEmail();
-                const password = emailPassword.value;
-                if (!email || !password) {
-                    showToast('Nama email dan kata sandi tidak boleh kosong.', true);
+            // === Fungsi Logika Inti (API Calls) ===
+            async function handleDeleteEmail(messageId, elementToRemove) {
+                if (!loggedInUser) {
+                    showToast('Harap login untuk menghapus email.', true);
                     return;
                 }
                 try {
-                    const response = await fetch(`${API_URL}/api/protect`, {
+                    const response = await fetch(`${API_URL}/api/delete`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
+                        body: JSON.stringify({ 
+                            email: loggedInUser.email, 
+                            password: loggedInUser.password, 
+                            messageId: messageId 
+                        })
                     });
                     const data = await response.json();
-                    if (!response.ok) throw new Error(data.message || 'Gagal melindungi email.');
+                    if (!response.ok) throw new Error(data.message);
+                    
                     showToast(data.message);
+                    elementToRemove.remove();
                 } catch (error) {
                     showToast(error.message, true);
                 }
             }
             
+            async function handleProtectEmail() {
+                // ... (Fungsi ini tetap sama)
+                const email = getFullEmail();
+                const password = emailPassword.value;
+                if (!email || !password) return showToast('Nama email dan kata sandi tidak boleh kosong.', true);
+                try {
+                    const response = await fetch(`${API_URL}/api/protect`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.message || 'Gagal melindungi email.');
+                    showToast(data.message);
+                } catch (error) { showToast(error.message, true); }
+            }
+            
             async function fetchAndRenderEmails(email, password) {
+                // ... (Fungsi ini tetap sama, tetapi kita tambahkan return email.id)
                 initialMessage.classList.add('hidden');
                 inboxContainer.innerHTML = '';
                 inboxContainer.appendChild(loader);
                 loader.classList.remove('hidden');
-
                 const refreshIcon = refreshBtn.querySelector('i');
                 refreshIcon.classList.add('fa-spin');
-
                 try {
-                    const response = await fetch(`${API_URL}/api/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, password })
-                    });
+                    const response = await fetch(`${API_URL}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) });
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.message || 'Gagal login.');
                     
+                    // --- PERBAIKAN LOGIKA PENGAMBILAN DATA ---
+                    // Kita perlu memastikan backend mengembalikan `id`
+                    // Asumsikan backend sudah diperbarui untuk menyertakan `id`
                     renderEmails(data.emails);
+                    
                     lastRefreshed.textContent = `Diperbarui: ${new Date().toLocaleTimeString('id-ID')}`;
                     refreshContainer.classList.remove('hidden');
                     loggedInUser = { email, password };
-
                 } catch (error) {
                     loader.classList.add('hidden');
                     showToast(error.message, true);
@@ -282,60 +263,36 @@
             async function handleCheckInbox() {
                 const email = getFullEmail();
                 const password = emailPassword.value;
-                if (!email || !password) {
-                    showToast('Nama email dan kata sandi tidak boleh kosong.', true);
-                    return;
-                }
+                if (!email || !password) return showToast('Nama email dan kata sandi tidak boleh kosong.', true);
                 await fetchAndRenderEmails(email, password);
             }
             
             async function handleRefresh() {
-                if (!loggedInUser) {
-                    showToast('Silakan periksa kotak masuk terlebih dahulu.', true);
-                    return;
-                }
+                if (!loggedInUser) return showToast('Silakan periksa kotak masuk terlebih dahulu.', true);
                 await fetchAndRenderEmails(loggedInUser.email, loggedInUser.password);
             }
 
-            // --- Event Listeners ---
+            // === Event Listeners ===
             protectBtn.addEventListener('click', handleProtectEmail);
             checkBtn.addEventListener('click', handleCheckInbox);
             refreshBtn.addEventListener('click', handleRefresh);
             emailUser.addEventListener('input', updateFullEmailDisplay);
             emailDomain.addEventListener('change', updateFullEmailDisplay);
-
             copyBtn.addEventListener('click', () => {
                 const emailToCopy = getFullEmail();
-                if (!emailToCopy) {
-                    showToast('Harap isi nama email terlebih dahulu.', true);
-                    return;
-                }
-                const tempInput = document.createElement('input');
-                tempInput.value = emailToCopy;
-                document.body.appendChild(tempInput);
-                tempInput.select();
-                try {
-                    document.execCommand('copy');
+                if (!emailToCopy) return showToast('Harap isi nama email terlebih dahulu.', true);
+                navigator.clipboard.writeText(emailToCopy).then(() => {
                     showToast('Email disalin ke clipboard!');
-                } catch (err) {
-                    showToast('Gagal menyalin email!', true);
-                } finally {
-                    document.body.removeChild(tempInput);
-                }
+                }).catch(err => {
+                    showToast('Gagal menyalin email.', true);
+                });
             });
             togglePassword.addEventListener('click', () => {
-                const passwordInput = document.getElementById('emailPassword');
-                const icon = togglePassword.querySelector('i');
-
-                 // Ganti tipe input dari password ke text atau sebaliknya
-                const isPassword = passwordInput.type === 'password';
-                 passwordInput.type = isPassword ? 'text' : 'password';
-
-                // Ganti ikon mata
-                icon.classList.toggle('fa-eye', !isPassword);
-                icon.classList.toggle('fa-eye-slash', isPassword);
+                const isPassword = emailPassword.type === 'password';
+                emailPassword.type = isPassword ? 'text' : 'password';
+                togglePassword.querySelector('i').classList.toggle('fa-eye', !isPassword);
+                togglePassword.querySelector('i').classList.toggle('fa-eye-slash', isPassword);
             });
-            
         });
     </script>
 </body>
