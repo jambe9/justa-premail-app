@@ -87,8 +87,11 @@
                             <option value="" disabled>Domain baru (segera hadir)</option>
                         </select>
                     </div>
-                    <div>
-                        <input type="password" id="emailPassword" class="form-input" placeholder="Masukkan kata sandi...">
+                    <div class="relative">
+                            <input type="password" id="emailPassword" class="form-input pr-10" placeholder="Masukkan kata sandi...">
+                                <button id="togglePassword" type="button" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                     </div>
                     <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                          <button id="protectBtn" class="w-full flex items-center justify-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-semibold px-4 py-3 rounded-lg transition-colors">
@@ -143,6 +146,7 @@
             const initialMessage = document.getElementById('initial-message');
             const loader = document.getElementById('loader');
             const toast = document.getElementById('toast');
+            const togglePassword = document.getElementById('togglePassword');
             const fullEmailDisplay = document.getElementById('fullEmailDisplay');
             const refreshContainer = document.getElementById('refresh-container');
             const lastRefreshed = document.getElementById('last-refreshed');
@@ -190,14 +194,31 @@
                     const emailBodyContent = `<div class="email-body-content">${email.body}</div>`;
                     emailEl.innerHTML = `
                         <div class="flex justify-between items-start">
-                            <div>
+                             <div class="flex-grow cursor-pointer" onclick="this.parentElement.nextElementSibling.classList.toggle('hidden')">
                                 <p class="font-semibold text-gray-800">${email.from.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>
                                 <p class="font-medium text-gray-600">${email.subject}</p>
                             </div>
-                            <span class="text-xs text-gray-400">${email.time}</span>
+                            <div class="flex items-center flex-shrink-0 ml-4">
+                                <span class="text-xs text-gray-400 mr-4">${email.time}</span>
+                                <button class="delete-btn text-gray-400 hover:text-red-600 transition-colors" title="Hapus Email">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="email-body hidden mt-4 pt-4 border-t border-gray-200 text-gray-700">${emailBodyContent}</div>`;
                     inboxContainer.appendChild(emailEl);
+                    // Menambahkan fungsi klik ke tombol hapus
+                    const deleteButton = emailEl.querySelector('.delete-btn');
+                        deleteButton.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Mencegah email terbuka saat tombol hapus diklik
+
+                            if (confirm('Apakah Anda yakin ingin menghapus email ini?')) {
+                                // NOTE: Logika untuk memanggil API backend akan kita tambahkan nanti.
+                                // Untuk sekarang, kita hanya akan menampilkan pesan dan menghapus email dari tampilan.
+                                showToast('Fungsi hapus akan dihubungkan ke backend.');
+                                emailEl.remove(); // Hapus item email dari tampilan
+                            }
+                        });
                     emailEl.addEventListener('click', () => emailEl.querySelector('.email-body').classList.toggle('hidden'));
                 });
             }
@@ -302,6 +323,19 @@
                     document.body.removeChild(tempInput);
                 }
             });
+            togglePassword.addEventListener('click', () => {
+                const passwordInput = document.getElementById('emailPassword');
+                const icon = togglePassword.querySelector('i');
+
+                 // Ganti tipe input dari password ke text atau sebaliknya
+                const isPassword = passwordInput.type === 'password';
+                 passwordInput.type = isPassword ? 'text' : 'password';
+
+                // Ganti ikon mata
+                icon.classList.toggle('fa-eye', !isPassword);
+                icon.classList.toggle('fa-eye-slash', isPassword);
+            });
+            
         });
     </script>
 </body>
